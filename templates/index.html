@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tel Archive</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            font-size: 15px;
+        }
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 0;
+            padding: 30px;
+        }
+        .ascii-logo {
+            color: #fff;
+            font-size: 13px;
+            line-height: 1.3;
+            white-space: pre;
+            text-align: center;
+            margin-bottom: 25px;
+
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 35px;
+            font-size: 16px;
+            font-family: 'SFMono-Regular', 'SF Mono', 'Inconsolata', 'Terminus', monospace;
+        }
+        .credit {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+        .credit a {
+            color: #0f0;
+            text-decoration: none;
+        }
+        .credit a:hover {
+            text-decoration: underline;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 12px;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: 2px solid #333;
+            cursor: pointer;
+            font-family: 'SFMono-Regular', 'SF Mono', 'Inconsolata', 'Terminus', monospace;
+            color: #888;
+            transition: all 0.2s;
+            font-size: 15px;
+        }
+        .tab:hover {
+            color: #0f0;
+            border-color: #0f0;
+        }
+        .tab.active {
+            background: transparent;
+            color: #0f0;
+            border-color: #0f0;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .section {
+            border: 1px solid #333;
+            padding: 25px;
+            margin-bottom: 25px;
+            background: #000;
+        }
+        .section-title {
+            color: #0f0;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-family: 'SFMono-Regular', 'SF Mono', 'Inconsolata', 'Terminus', monospace;
+        }
+        .file-list {
+            margin: 25px 0;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #222;
+            margin-bottom: 8px;
+            gap: 18px;
+        }
+        .file-item:hover {
+            background: #111;
+        }
+        .file-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #00ff88;
+        }
+        .file-info {
+            flex: 1;
+        }
+        .file-name {
+            color: #fff;
+            font-size: 15px;
+        }
+        .file-size {
+            color: #666;
+            font-size: 13px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: 2px solid #0f0;
+            background: transparent;
+            color: #0f0;
+            cursor: pointer;
+            font-family: 'SFMono-Regular', 'SF Mono', 'Inconsolata', 'Terminus', monospace;
+            margin-right: 12px;
+            transition: all 0.2s;
+            font-size: 15px;
+            text-transform: none;
+            letter-spacing: 0.5px;
+            position: relative;
+        }
+        .btn:hover {
+            background: transparent;
+            color: #0f0;
+            border-color: #0f0;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn-danger {
+            border-color: #f00;
+            color: #f00;
+        }
+        .btn-danger:hover {
+            background: transparent;
+            color: #f00;
+            border-color: #f00;
+        }
+        .option-group {
+            margin: 12px 0;
+        }
+        .option-group label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 15px;
+        }
+        .option-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #00ff88;
+        }
+        .form-group {
+            margin: 18px 0;
+        }
+        .form-group label {
+            display: block;
+            color: #888;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 15px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #0f0;
+        }
+        .folder-item {
+            padding: 18px;
+            border: 1px solid #222;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .folder-item:hover {
+            background: #111;
+        }
+        .folder-info h3 {
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-family: 'SFMono-Regular', 'SF Mono', 'Inconsolata', 'Terminus', monospace;
+        }
+        .folder-info p {
+            color: #666;
+            font-size: 14px;
+        }
+        .folder-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .status {
+            padding: 18px;
+            border: 1px solid;
+            margin-top: 25px;
+            display: none;
+            font-size: 15px;
+        }
+        .status.success {
+            border-color: #0f0;
+            background: #001100;
+            color: #0f0;
+            display: block;
+        }
+        .status.error {
+            border-color: #f00;
+            background: #110000;
+            color: #f00;
+            display: block;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 25px;
+            color: #0f0;
+            font-size: 15px;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            border: 3px solid #222;
+            border-top: 3px solid #0f0;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .upload-area {
+            border: 1px dashed #333;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 25px;
+            font-size: 15px;
+        }
+        .upload-area:hover {
+            border-color: #0f0;
+            background: #001100;
+        }
+        .progress-log {
+            background: #000;
+            border: 1px solid #333;
+            padding: 18px;
+            margin-top: 25px;
+            max-height: 350px;
+            overflow-y: auto;
+            font-size: 14px;
+            display: none;
+        }
+        .progress-log.active {
+            display: block;
+        }
+        .progress-log div {
+            margin: 6px 0;
+            color: #888;
+        }
+        .progress-log .error {
+            color: #f00;
+        }
+        .progress-log .success {
+            color: #0f0;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 25px;
+            background: #111;
+            border: 1px solid #333;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #0f0;
+            transition: width 0.3s;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .progress-bar-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 2;
+            text-shadow: 0 0 3px #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ONBOARDING WIZARD OVERLAY (Full Screen) -->
+        <div id="onboardingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; overflow-y: auto; padding: 40px 20px;">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="ascii-logo">
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                          ║
+║         ████████╗███████╗██╗          █████╗ ██████╗  ██████╗██╗  ██╗██╗██╗   ██╗███████╗               ║
+║         ╚══██╔══╝██╔════╝██║         ██╔══██╗██╔══██╗██╔════╝██║  ██║██║██║   ██║██╔════╝               ║
+║            ██║   █████╗  ██║         ███████║██████╔╝██║     ███████║██║██║   ██║█████╗                 ║
+║            ██║   ██╔══╝  ██║         ██╔══██║██╔══██╗██║     ██╔══██║██║╚██╗ ██╔╝██╔══╝                 ║
+║            ██║   ███████╗███████╗    ██║  ██║██║  ██║╚██████╗██║  ██║██║ ╚████╔╝ ███████╗               ║
+║            ╚═╝   ╚══════╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚══════╝               ║
+║                                                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+                </div>
+
+                <!-- Step 1: Welcome -->
+                <div id="wizardStep1" class="section" style="border-color: #0f0; background: #001100;">
+                    <h2 style="color: #0f0; margin-bottom: 20px; text-align: center;">[ Welcome to Tel Archive! ]</h2>
+                    <p style="color: #888; margin-bottom: 20px; line-height: 1.8; text-align: center;">
+                        Let's get you set up in a few simple steps. This will only take a minute.
+                    </p>
+                    <p style="color: #666; margin-bottom: 30px; font-size: 14px; text-align: center;">
+                        You'll need Telegram API credentials. Don't have them? 
+                        <a href="https://my.telegram.org/auth" target="_blank" style="color: #0f0;">Get them here</a>
+                    </p>
+                    <div style="text-align: center;">
+                        <button class="btn" onclick="wizardNextStep(2)">[ Let's Start ]</button>
+                        <button class="btn" onclick="skipOnboarding()" style="border-color: #666; color: #666; margin-left: 10px;">[ Skip for now ]</button>
+                    </div>
+                    <p style="color: #666; font-size: 12px; text-align: center; margin-top: 20px;">
+                        You can explore the app and set up credentials later in Settings
+                    </p>
+                </div>
+
+                <!-- Step 2: Telegram Credentials -->
+                <div id="wizardStep2" class="section" style="display: none; border-color: #0f0;">
+                    <h3 style="color: #0f0; margin-bottom: 20px;">Step 1/3: Telegram API Credentials & Login</h3>
+                    <p style="color: #888; margin-bottom: 20px;">
+                        Get these from <a href="https://my.telegram.org/auth" target="_blank" style="color: #0f0;">my.telegram.org/auth</a>
+                    </p>
+                    <div id="wizardError2" style="display: none; color: #f00; background: #110000; border: 1px solid #f00; padding: 10px; margin-bottom: 15px;"></div>
+                    <div class="form-group">
+                        <label>Telegram API ID</label>
+                        <input type="text" id="wizard_api_id" placeholder="Enter your API ID">
+                    </div>
+                    <div class="form-group">
+                        <label>Telegram API Hash</label>
+                        <input type="password" id="wizard_api_hash" placeholder="Enter your API Hash">
+                    </div>
+                    
+                    <!-- Telegram Login Section -->
+                    <div id="telegramLoginSection" style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #333;">
+                        <h4 style="color: #0f0; margin-bottom: 15px;">Telegram Login</h4>
+                        <div id="loginPhoneStep">
+                            <div class="form-group">
+                                <label>Phone Number (with country code)</label>
+                                <input type="text" id="wizard_phone" placeholder="+1234567890">
+                            </div>
+                            <button class="btn" onclick="sendTelegramCode()" style="margin-bottom: 10px;">[ Send Code ]</button>
+                        </div>
+                        <div id="loginCodeStep" style="display: none;">
+                            <div class="form-group">
+                                <label>Verification Code</label>
+                                <input type="text" id="wizard_code" placeholder="Enter 5-digit code">
+                            </div>
+                            <button class="btn" onclick="verifyTelegramCode()">[ Verify Code ]</button>
+                            <button class="btn" onclick="backToPhoneStep()" style="border-color: #666; color: #666;">[ Change Number ]</button>
+                        </div>
+                        <div id="loginSuccess" style="display: none; color: #0f0; background: #001100; border: 1px solid #0f0; padding: 10px; margin-top: 10px;">
+                            Logged in successfully!
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 25px;">
+                        <button class="btn" onclick="wizardNextStep(3)">[ Next ]</button>
+                        <button class="btn" onclick="wizardPrevStep(1)" style="border-color: #666; color: #666;">[ Back ]</button>
+                        <button class="btn" onclick="skipOnboarding()" style="border-color: #666; color: #666; margin-left: 10px;">[ Skip ]</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Password -->
+                <div id="wizardStep3" class="section" style="display: none; border-color: #0f0;">
+                    <h3 style="color: #0f0; margin-bottom: 20px;">Step 2/3: Encryption Password</h3>
+                    <p style="color: #888; margin-bottom: 20px;">
+                        Set a strong password to encrypt your files. Don't forget this!
+                    </p>
+                    <div id="wizardError3" style="display: none; color: #f00; background: #110000; border: 1px solid #f00; padding: 10px; margin-bottom: 15px;"></div>
+                    <div class="form-group">
+                        <label>Encryption Password</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="wizard_password" placeholder="Enter a strong password" style="flex: 1;">
+                            <button class="btn" onclick="generatePassphrase()" style="white-space: nowrap;">[ Generate ]</button>
+                        </div>
+                        <div id="passphraseDisplay" style="display: none; color: #0f0; font-size: 13px; margin-top: 10px; padding: 10px; border: 1px solid #0f0; background: #001100;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="wizard_password_confirm" placeholder="Re-enter password">
+                    </div>
+                    <p style="color: #666; font-size: 13px; margin-top: 10px; margin-bottom: 40px;">
+                        Tip: Click "Generate" for a secure 12-word BIP39 mnemonic (like crypto wallets)
+                    </p>
+                    <button class="btn" onclick="wizardNextStep(4)">[ Next ]</button>
+                    <button class="btn" onclick="wizardPrevStep(2)" style="border-color: #666; color: #666;">[ Back ]</button>
+                    <button class="btn" onclick="skipOnboarding()" style="border-color: #666; color: #666; margin-left: 10px;">[ Skip ]</button>
+                </div>
+
+                <!-- Step 4: Upload Destination -->
+                <div id="wizardStep4" class="section" style="display: none; border-color: #0f0;">
+                    <h3 style="color: #0f0; margin-bottom: 20px;">Step 3/3: Upload Destination</h3>
+                    <p style="color: #888; margin-bottom: 20px;">
+                        Choose where to upload your files by default.
+                    </p>
+                    <div id="wizardError4" style="display: none; color: #f00; background: #110000; border: 1px solid #f00; padding: 10px; margin-bottom: 15px;"></div>
+                    <div class="form-group">
+                        <label>Default Upload Destination</label>
+                        <select id="wizard_destination">
+                            <option value="">Loading channels...</option>
+                        </select>
+                    </div>
+                    <p style="color: #666; margin-top: 20px; font-size: 13px;">
+                        Note: On first upload, Telegram will ask for your phone number and verification code.
+                    </p>
+                    <button class="btn" onclick="wizardComplete()">[ Complete Setup ]</button>
+                    <button class="btn" onclick="wizardPrevStep(3)" style="border-color: #666; color: #666;">[ Back ]</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN APP (Hidden during onboarding) -->
+        <div id="mainApp">
+        <div class="ascii-logo" id="asciiLogo">
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                          ║
+║         ████████╗███████╗██╗          █████╗ ██████╗  ██████╗██╗  ██╗██╗██╗   ██╗███████╗               ║
+║         ╚══██╔══╝██╔════╝██║         ██╔══██╗██╔══██╗██╔════╝██║  ██║██║██║   ██║██╔════╝               ║
+║            ██║   █████╗  ██║         ███████║██████╔╝██║     ███████║██║██║   ██║█████╗                 ║
+║            ██║   ██╔══╝  ██║         ██╔══██║██╔══██╗██║     ██╔══██║██║╚██╗ ██╔╝██╔══╝                 ║
+║            ██║   ███████╗███████╗    ██║  ██║██║  ██║╚██████╗██║  ██║██║ ╚████╔╝ ███████╗               ║
+║            ╚═╝   ╚══════╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚══════╝               ║
+║                                                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+        </div>
+        <p class="subtitle" id="subtitle">[ compress. archive. encrypt. telegram. unlimited storage. ]</p>
+        
+        <!-- Placeholder for moved logs -->
+        <div id="logsPlaceholder" style="display: none; margin-bottom: 25px;"></div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('process')">Process Files</button>
+            <button class="tab" onclick="showTab('archives')">Archives</button>
+            <button class="tab" onclick="showTab('downloaded')">Downloaded</button>
+            <button class="tab" onclick="showTab('settings')">Settings</button>
+        </div>
+
+        <!-- Process Files Tab -->
+        <div id="process-tab" class="tab-content active">
+            <div class="section-title">[ Process Files ]</div>
+            <div class="section">
+                <p style="margin-bottom: 20px; color: #888;">Select files to compress, encrypt, and upload to Telegram</p>
+                
+                <!-- Settings and buttons at top -->
+                <div class="option-group">
+                    <label>
+                        <input type="checkbox" id="processCompress">
+                        Compress videos
+                    </label>
+                </div>
+                <div class="option-group">
+                    <label>
+                        <input type="checkbox" id="processBundleArchive">
+                        Bundle files into archive (.7z)
+                    </label>
+                </div>
+                <div class="option-group">
+                    <label>
+                        <input type="checkbox" id="processEncrypt" checked>
+                        Encrypt archive with password
+                    </label>
+                </div>
+                <div class="option-group">
+                    <label>
+                        <input type="checkbox" id="processUpload" checked>
+                        Upload to Telegram
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Upload Destination</label>
+                    <select id="uploadDestination">
+                        <option value="">Use default from Settings</option>
+                    </select>
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                        Bundle ON + Encrypt ON = One encrypted .7z | Bundle ON + Encrypt OFF = One .7z (no password)<br>
+                        Bundle OFF + Encrypt ON = Each file encrypted separately | Bundle OFF + Encrypt OFF = Upload raw files
+                    </small>
+                </div>
+                <button class="btn" onclick="processSelectedFiles()">[ Process Files ]</button>
+                <button class="btn" onclick="refreshFiles()">[ Refresh ]</button>
+                
+                <!-- File selection -->
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; color: #0f0;">
+                                <input type="checkbox" id="selectAllFiles" onclick="toggleSelectAll()" style="width: 20px; height: 20px; accent-color: #00ff88;">
+                                <span style="font-size: 15px;">Select All</span>
+                            </label>
+                            <span id="selectedCount" style="color: #888; font-size: 14px;">0 selected</span>
+                        </div>
+                        <button class="btn" onclick="toggleFileList()" id="toggleFilesBtn" style="padding: 8px 16px; font-size: 13px;">[ Show All Files ]</button>
+                    </div>
+                    <div class="file-list" id="processFileList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Archives Tab (Telegram Files) -->
+        <div id="archives-tab" class="tab-content">
+            <div class="section-title">[ Telegram Archives ]</div>
+            <div class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <p style="color: #888;">Files uploaded to Telegram (grouped by archive)</p>
+                    <div style="display: flex; gap: 20px; align-items: center;">
+                        <label style="display: inline-flex; align-items: center; gap: 8px; color: #888; cursor: pointer;">
+                            <input type="checkbox" id="globalDecrypt" checked style="width: 18px; height: 18px; accent-color: #00ff88;">
+                            <span style="font-size: 14px;">Decrypt by default</span>
+                        </label>
+                        <label style="display: inline-flex; align-items: center; gap: 8px; color: #888; cursor: pointer;">
+                            <input type="checkbox" id="globalDeleteAfterDecrypt" style="width: 18px; height: 18px; accent-color: #00ff88;">
+                            <span style="font-size: 14px;">Delete .7z after decrypt</span>
+                        </label>
+                    </div>
+                </div>
+                <button class="btn" onclick="loadTelegramArchives()" style="margin-bottom: 20px;">[ Fetch from Telegram ]</button>
+                <div class="folder-list" id="telegramArchivesList"></div>
+            </div>
+        </div>
+
+        <!-- Downloaded Tab -->
+        <div id="downloaded-tab" class="tab-content">
+            <div class="section-title">[ Downloaded Files ]</div>
+            <div class="section">
+                <p style="margin-bottom: 20px; color: #888;">Files downloaded from Telegram</p>
+                <button class="btn" onclick="refreshDownloaded()" style="margin-bottom: 20px;">[ Refresh ]</button>
+                <div class="folder-list" id="downloadedList"></div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <div class="section-title">[ Configuration ]</div>
+            
+            <div class="section">
+                <div class="form-group">
+                    <label>Encryption Password</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="password" id="password" value="{{ config.password }}" placeholder="Enter a strong password" style="flex: 1;">
+                        <button class="btn" onclick="showGeneratePasswordModal()" style="padding: 8px 16px; font-size: 13px; white-space: nowrap;">[ Generate New ]</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Telegram API ID</label>
+                    <input type="text" id="telegram_api_id" value="{{ config.telegram_api_id }}" placeholder="Get from my.telegram.org/auth">
+                </div>
+                <div class="form-group">
+                    <label>Telegram API Hash</label>
+                    <input type="password" id="telegram_api_hash" value="{{ config.telegram_api_hash }}" placeholder="Get from my.telegram.org/auth">
+                </div>
+                <div class="form-group">
+                    <label>Default Upload Destination</label>
+                    <select id="upload_destination" data-saved-value="{{ config.upload_destination or 'me' }}">
+                        <option value="">Click to load channels...</option>
+                    </select>
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                        Default destination for uploads. Can be changed per-file in Process Files tab.
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Audio Encoding Mode</label>
+                    <select id="video_keep_audio">
+                        <option value="true" {% if config.video_keep_audio != False %}selected{% endif %}>Fast (copy audio)</option>
+                        <option value="false" {% if config.video_keep_audio == False %}selected{% endif %}>Full (re-encode audio)</option>
+                    </select>
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                        Fast mode copies audio without re-encoding (faster, larger file). Full mode re-encodes everything (slower, smaller file).
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Split Size (MB) - Auto-split files larger than this</label>
+                    <input type="number" id="split_size_mb" value="{{ config.split_size_mb or 2000 }}" placeholder="2000">
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                        Free users: 2000 MB (2GB limit) | Premium users: 4000 MB (4GB limit)
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Upload Caption Mode</label>
+                    <select id="upload_caption">
+                        <option value="detailed" {% if config.upload_caption == 'detailed' %}selected{% endif %}>Detailed</option>
+                        <option value="minimal" {% if config.upload_caption == 'minimal' %}selected{% endif %}>Minimal</option>
+                        <option value="none" {% if config.upload_caption == 'none' %}selected{% endif %}>None</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>CPU Encoding Speed</label>
+                    <select id="cpu_preset">
+                        <option value="fastest" {% if config.cpu_preset == 'fastest' %}selected{% endif %}>Fastest (77% compression)</option>
+                        <option value="fast" {% if config.cpu_preset == 'fast' %}selected{% endif %}>Fast (87% compression)</option>
+                        <option value="normal" {% if config.cpu_preset == 'normal' or not config.cpu_preset %}selected{% endif %}>Normal (91% compression)</option>
+                    </select>
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                        Quality: CRF 28 (identical for all). Fastest = bigger file, Normal = smaller file.
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>CPU Threads (0 = use all available)</label>
+                    <input type="number" id="cpu_threads" value="{{ config.cpu_threads or 0 }}" min="0" max="128" placeholder="0">
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                        Limit CPU usage. 0 = use all threads. Lower value = slower encoding but leaves CPU for other tasks.
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Parallel Connections (1-20)</label>
+                    <input type="number" id="parallel_connections" value="{{ config.parallel_connections or 20 }}" min="1" max="20" placeholder="20">
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                        Number of simultaneous connections for upload/download. Higher = faster but more resource intensive. Default: 20 (auto-calculated based on file size)
+                    </small>
+                </div>
+                <button class="btn" onclick="saveSettings()">[ Save Settings ]</button>
+                <button class="btn btn-danger" onclick="showLogoutModal()" style="margin-left: 10px;">[ Logout ]</button>
+                <button class="btn" onclick="showResetModal()" style="margin-left: 10px; border-color: #f90; color: #f90;">[ Reset All ]</button>
+            </div>
+        </div>
+        </div>
+
+        <!-- Logout Modal -->
+        <div id="logoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center;">
+            <div style="background: #000; border: 2px solid #f00; padding: 30px; max-width: 600px; width: 90%;">
+                <h3 style="color: #f00; margin-bottom: 20px;">[ Logout from Telegram ]</h3>
+                <p style="color: #888; margin-bottom: 20px; line-height: 1.6;">
+                    This will log you out from Telegram and delete your session file. You'll need to login again next time.
+                </p>
+                <p style="color: #0f0; margin-bottom: 20px; line-height: 1.6;">
+                    Your settings and passwords will be preserved.
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn btn-danger" onclick="confirmLogout()">[ Logout ]</button>
+                    <button class="btn" onclick="closeLogoutModal()" style="border-color: #666; color: #666;">[ Cancel ]</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Modal -->
+        <div id="resetModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center;">
+            <div style="background: #000; border: 2px solid #f90; padding: 30px; max-width: 600px; width: 90%;">
+                <h3 style="color: #f90; margin-bottom: 20px;">[ Reset All Settings ]</h3>
+                <p style="color: #f00; margin-bottom: 15px; line-height: 1.6; font-weight: bold;">
+                    WARNING: This will reset all settings to defaults and logout from Telegram.
+                </p>
+                <p style="color: #888; margin-bottom: 20px; line-height: 1.6;">
+                    Your current password will be saved to: <span style="color: #0f0;">archive/old_passwords.txt</span>
+                </p>
+                <p style="color: #666; margin-bottom: 20px; line-height: 1.6; font-size: 13px;">
+                    This will NOT delete your files or archives.
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn" onclick="confirmReset()" style="border-color: #f90; color: #f90;">[ Reset Everything ]</button>
+                    <button class="btn" onclick="closeResetModal()" style="border-color: #666; color: #666;">[ Cancel ]</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Password Modal -->
+        <div id="generatePasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center;">
+            <div style="background: #000; border: 2px solid #0f0; padding: 30px; max-width: 600px; width: 90%;">
+                <h3 style="color: #0f0; margin-bottom: 20px;">[ Generate New Password ]</h3>
+                <p style="color: #f00; margin-bottom: 15px; line-height: 1.6;">
+                    WARNING: Generating a new password will replace your current password.
+                </p>
+                <p style="color: #888; margin-bottom: 20px; line-height: 1.6;">
+                    Your old password will be saved to: <span style="color: #0f0;">archive/old_passwords.txt</span>
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn" onclick="confirmGeneratePassword()">[ Yes, Continue ]</button>
+                    <button class="btn" onclick="closeGeneratePasswordModal()" style="border-color: #666; color: #666;">[ Cancel ]</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Raw Upload Warning Modal -->
+        <div id="rawUploadWarningModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center;">
+            <div style="background: #000; border: 2px solid #f00; padding: 30px; max-width: 700px; width: 90%;">
+                <h3 style="color: #f00; margin-bottom: 20px;">[ Security Warning ]</h3>
+                <p style="color: #f00; margin-bottom: 15px; line-height: 1.6; font-weight: bold;">
+                    You are about to upload raw files without encryption.
+                </p>
+                <p style="color: #888; margin-bottom: 20px; line-height: 1.6;">
+                    <span style="color: #fff;">Important:</span> Even in private channels, Telegram has access to your files. 
+                    They use server-side encryption but hold the keys, meaning Telegram staff and potentially 
+                    governments can access your data if requested.
+                </p>
+                <p style="color: #0f0; margin-bottom: 20px; line-height: 1.6;">
+                    Encryption is strongly recommended for sensitive files.
+                </p>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; color: #888;">
+                        <input type="checkbox" id="dontShowRawWarning" style="width: 18px; height: 18px; accent-color: #00ff88;">
+                        <span style="font-size: 14px;">Don't show this warning again</span>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn" onclick="confirmRawUpload()" style="border-color: #f00; color: #f00;">[ Upload Anyway ]</button>
+                    <button class="btn" onclick="closeRawUploadWarning()">[ Cancel ]</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>PROCESSING...</div>
+        </div>
+
+        <div class="progress-log active" id="progressLog">
+            <div style="display: flex; justify-content: space-between; align-items: center; color: #0f0; font-size: 16px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #333; font-family: 'SFMono-Regular', 'SF Mono', 'Inconsolata', 'Terminus', monospace;">
+                <span>[ Console Logs ]</span>
+                <button class="btn" onclick="toggleLogsPosition()" id="toggleLogsBtn" style="padding: 6px 12px; font-size: 12px;">[ ↑ Move to Top ]</button>
+            </div>
+        </div>
+        <div class="status" id="status"></div>
+        
+        <div class="credit">
+            <div style="text-align: right;">
+                <span>Made by <a href="https://varshithkarkera.in" target="_blank">Varshith</a></span>
+                <span style="margin: 0 10px; color: #333;">|</span>
+                <a href="https://github.com/varshithkarkera/telarchive" target="_blank" style="color: #0f0; text-decoration: none;">GitHub</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
