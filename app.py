@@ -1513,7 +1513,8 @@ def telegram_download():
     # Initialize progress
     progress_data[job_id] = f"Starting download of {archive_id}..."
     progress_logs[job_id] = [
-        {'msg': f'[DOWNLOAD] Starting download of archive: {archive_id}', 'type': 'info'}
+        {'msg': f'[DOWNLOAD] Starting download of archive: {archive_id}', 'type': 'info'},
+        {'msg': f'[DEBUG] Decrypt option: {decrypt}', 'type': 'info'}
     ]
     
     def download_task():
@@ -1592,30 +1593,45 @@ def telegram_download():
                 await client.disconnect()
                 
                 # Decrypt if requested
+                add_progress_log(job_id, f'[DEBUG] Decrypt flag is: {decrypt}', 'info')
                 if decrypt:
                     progress_data[job_id] = "Decrypting archive..."
                     add_progress_log(job_id, '[DECRYPT] Starting decryption...', 'info')
                     
-                    # Find the archive file
-                    archives = list(download_dir.glob('*.7z.001')) or list(download_dir.glob('*.7z'))
+                    # Find the archive file - prioritize .7z.001 (split archives), then .7z files
+                    archives = list(download_dir.glob('*.7z.001'))
+                    if not archives:
+                        archives = list(download_dir.glob('*.7z'))
+                    
+                    add_progress_log(job_id, f'[DEBUG] Found {len(archives)} archive(s) to decrypt', 'info')
                     if archives:
+                        add_progress_log(job_id, f'[DEBUG] Archives: {[a.name for a in archives]}', 'info')
                         from encryption import decrypt_and_extract
                         password = config.get('password')
                         if not password:
                             raise Exception("No password set for decryption")
                         
-                        success = decrypt_and_extract(archives[0], download_dir, password)
-                        if success:
-                            add_progress_log(job_id, '[OK] Decryption complete', 'success')
+                        # Decrypt each archive found
+                        for archive in archives:
+                            add_progress_log(job_id, f'[DECRYPT] Decrypting {archive.name}...', 'info')
                             
-                            # Delete .7z files if requested
-                            if delete_after_decrypt:
-                                add_progress_log(job_id, '[CLEANUP] Deleting .7z files...', 'info')
-                                for archive_file in download_dir.glob('*.7z*'):
-                                    archive_file.unlink()
-                                add_progress_log(job_id, '[OK] Deleted .7z files', 'success')
-                        else:
-                            raise Exception("Decryption failed")
+                            def decrypt_progress(msg):
+                                progress_data[job_id] = msg
+                            
+                            success = decrypt_and_extract(archive, download_dir, password, decrypt_progress)
+                            if success:
+                                add_progress_log(job_id, f'[OK] Decrypted {archive.name}', 'success')
+                            else:
+                                raise Exception(f"Decryption failed for {archive.name}")
+                        
+                        # Delete .7z files if requested
+                        if delete_after_decrypt:
+                            add_progress_log(job_id, '[CLEANUP] Deleting .7z files...', 'info')
+                            for archive_file in download_dir.glob('*.7z*'):
+                                archive_file.unlink()
+                            add_progress_log(job_id, '[OK] Deleted .7z files', 'success')
+                    else:
+                        add_progress_log(job_id, '[WARNING] No .7z archives found to decrypt', 'warning')
                 
                 return download_dir
             
@@ -1683,6 +1699,8 @@ def telegram_download_single():
     archive_id = data.get('archive_id')
     filename = data.get('filename')
     message_id = data.get('message_id')
+    decrypt = data.get('decrypt', False)
+    delete_after_decrypt = data.get('delete_after_decrypt', False)
     job_id = str(int(time.time() * 1000))
     
     if not config.get('telegram_api_id') or not config.get('telegram_api_hash'):
@@ -1691,7 +1709,8 @@ def telegram_download_single():
     # Initialize progress
     progress_data[job_id] = f"Starting download of {filename}..."
     progress_logs[job_id] = [
-        {'msg': f'[DOWNLOAD] Starting download: {filename}', 'type': 'info'}
+        {'msg': f'[DOWNLOAD] Starting download: {filename}', 'type': 'info'},
+        {'msg': f'[DEBUG] Decrypt option: {decrypt}', 'type': 'info'}
     ]
     
     def download_task():
@@ -1742,14 +1761,44 @@ def telegram_download_single():
                         progress_data[job_id] = f"Downloading: {percent:.1f}% ({speed_mbps:.2f} MB/s) - {filename}"
                 
                 await parallel_download_file(client, message, str(download_dir / filename), file_progress)
+                add_progress_log(job_id, f'[OK] Downloaded {filename}', 'success')
                 
                 await client.disconnect()
+                
+                # Decrypt if requested and file is a .7z archive
+                if decrypt and (filename.endswith('.7z') or '.7z.' in filename):
+                    progress_data[job_id] = "Decrypting archive..."
+                    add_progress_log(job_id, '[DECRYPT] Starting decryption...', 'info')
+                    
+                    from encryption import decrypt_and_extract
+                    password = config.get('password')
+                    if not password:
+                        raise Exception("No password set for decryption")
+                    
+                    archive_path = download_dir / filename
+                    add_progress_log(job_id, f'[DECRYPT] Decrypting {filename}...', 'info')
+                    
+                    def decrypt_progress(msg):
+                        progress_data[job_id] = msg
+                    
+                    success = decrypt_and_extract(archive_path, download_dir, password, decrypt_progress)
+                    if success:
+                        add_progress_log(job_id, f'[OK] Decrypted {filename}', 'success')
+                        
+                        # Delete .7z file if requested
+                        if delete_after_decrypt:
+                            add_progress_log(job_id, '[CLEANUP] Deleting .7z file...', 'info')
+                            archive_path.unlink()
+                            add_progress_log(job_id, '[OK] Deleted .7z file', 'success')
+                    else:
+                        raise Exception(f"Decryption failed for {filename}")
+                
                 return download_dir
             
             path = asyncio.run(download_with_progress())
             progress_data[job_id] = "COMPLETE"
             progress_data[f"{job_id}_result"] = {'path': str(path / filename)}
-            add_progress_log(job_id, f'[OK] Downloaded: {filename}', 'success')
+            add_progress_log(job_id, f'[OK] Download complete: {archive_id}', 'success')
         except Exception as e:
             progress_data[job_id] = f"ERROR: {str(e)}"
             add_progress_log(job_id, f'[ERROR] Download failed: {str(e)}', 'error')

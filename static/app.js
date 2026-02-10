@@ -607,8 +607,24 @@ function toggleArchiveParts(archiveId) {
 }
 
 function downloadSingleFile(archiveId, filename, messageId) {
+    const checkbox = document.getElementById('globalDecrypt');
+    const globalDecrypt = checkbox ? checkbox.checked : false;
+    const deleteCheckbox = document.getElementById('globalDeleteAfterDecrypt');
+    const deleteAfterDecrypt = deleteCheckbox ? deleteCheckbox.checked : false;
+    
+    console.log('[DEBUG] Checkbox element:', checkbox);
+    console.log('[DEBUG] Checkbox checked property:', checkbox ? checkbox.checked : 'CHECKBOX NOT FOUND');
+    console.log('[DEBUG] Decrypt value:', globalDecrypt);
+    
     clearProgress();
     logProgress(`[DOWNLOAD] Starting download of: ${filename}...`);
+    logProgress(`[DEBUG] Decrypt checkbox value: ${globalDecrypt}`, 'info');
+    if (globalDecrypt) {
+        logProgress(`[DOWNLOAD] Will decrypt after download`, 'info');
+        if (deleteAfterDecrypt) {
+            logProgress(`[DOWNLOAD] Will delete .7z files after decryption`, 'info');
+        }
+    }
     
     fetch('/telegram-download-single', {
         method: 'POST',
@@ -616,7 +632,9 @@ function downloadSingleFile(archiveId, filename, messageId) {
         body: JSON.stringify({
             archive_id: archiveId,
             filename: filename,
-            message_id: messageId
+            message_id: messageId,
+            decrypt: globalDecrypt,
+            delete_after_decrypt: deleteAfterDecrypt
         })
     })
     .then(r => r.json())
@@ -1730,3 +1748,30 @@ function confirmRawUpload() {
     bypassRawWarning = true;
     processSelectedFiles();
 }
+
+
+// Handle decrypt checkbox dependency
+document.addEventListener('DOMContentLoaded', function() {
+    const decryptCheckbox = document.getElementById('globalDecrypt');
+    const deleteCheckbox = document.getElementById('globalDeleteAfterDecrypt');
+    
+    if (decryptCheckbox && deleteCheckbox) {
+        // Function to update delete checkbox state
+        function updateDeleteCheckbox() {
+            if (!decryptCheckbox.checked) {
+                deleteCheckbox.checked = false;
+                deleteCheckbox.disabled = true;
+                deleteCheckbox.parentElement.style.opacity = '0.5';
+            } else {
+                deleteCheckbox.disabled = false;
+                deleteCheckbox.parentElement.style.opacity = '1';
+            }
+        }
+        
+        // Initial state
+        updateDeleteCheckbox();
+        
+        // Listen for changes
+        decryptCheckbox.addEventListener('change', updateDeleteCheckbox);
+    }
+});
