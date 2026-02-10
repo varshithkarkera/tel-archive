@@ -192,10 +192,9 @@ Parallel upload implementation inspired by [Kotatogram](https://github.com/kotat
 
 ## Links
 
-- GitHub: https://github.com/varshithkarkera/telarchive
-- Website: https://varshithkarkera.in
-- Issues: https://github.com/varshithkarkera/telarchive/issues
-- X: https://x.com/varshithkarkera
+- GitHub: [Tel Archive](https://github.com/varshithkarkera/telarchive)
+- Website: [varshithkarkera.in](https://varshithkarkera.in)
+- X: [@varshithkarkera](https://x.com/varshithkarkera)
 
 ---
 
