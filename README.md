@@ -201,7 +201,7 @@ Parallel upload implementation inspired by [Kotatogram](https://github.com/kotat
 ## Star History
 
 <p align="center">
-  <img src="https://api.star-history.com/svg?repos=varshithkarkera/telarchive&type=Date&theme=dark&v=1" />
+  <img src="https://api.star-history.com/svg?repos=varshithkarkera/tel-archive&type=Date&theme=dark&v=1" />
 </p>
 
 ---
