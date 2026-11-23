@@ -1,9 +1,11 @@
 // Tab switching
-function showTab(tabName) {
+function showTab(tabName, trigger) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     
-    event.target.classList.add('active');
+    const activeTab = trigger || document.querySelector(`.tab[data-tab="${tabName}"]`);
+    if (activeTab) activeTab.classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => { t.setAttribute('aria-selected', String(t === activeTab)); t.tabIndex = t === activeTab ? 0 : -1; });
     document.getElementById(`${tabName}-tab`).classList.add('active');
     
     if (tabName === 'process') {
@@ -84,7 +86,7 @@ function displayFiles() {
     const toggleBtn = document.getElementById('toggleFilesBtn');
     
     if (allFiles.length === 0) {
-        processList.innerHTML = '<p style="color:#0f0;">No files in archive folder</p>';
+        processList.innerHTML = '<p style="color:var(--ink);">No files in archive folder</p>';
         toggleBtn.style.display = 'none';
         return;
     }
@@ -152,7 +154,7 @@ function updateSelectedCount() {
     
     if (countEl) {
         countEl.textContent = `${count} selected`;
-        countEl.style.color = count > 0 ? '#0f0' : '#888';
+        countEl.style.color = count > 0 ? 'var(--ink)' : 'var(--muted)';
     }
 }
 
@@ -569,7 +571,7 @@ function displayTelegramArchives(archives) {
     const list = document.getElementById('telegramArchivesList');
     
     if (archives.length === 0) {
-        list.innerHTML = '<p style="color:#0f0;">No archives found in Telegram</p>';
+        list.innerHTML = '<p style="color:var(--ink);">No archives found in Telegram</p>';
         return;
     }
     
@@ -579,7 +581,7 @@ function displayTelegramArchives(archives) {
                 <h3>[ ${archive.name} ]</h3>
                 <p>${archive.parts} part(s) • ${archive.total_size} • Uploaded: ${archive.date}</p>
                 ${archive.expanded ? `
-                    <div style="margin-top: 10px; padding-left: 20px; color: #888; font-size: 13px;">
+                    <div style="margin-top: 10px; padding-left: 20px; color: var(--muted); font-size: 13px;">
                         ${archive.files.map(f => `
                             <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #222;">
                                 <span>→ ${f.name} (${f.size})</span>
@@ -809,7 +811,7 @@ function logProgress(message, type = 'info') {
             container.id = containerId;
             container.style.marginTop = '15px';
             container.innerHTML = `
-                <div style="color: #0f0; margin-bottom: 10px; font-size: 14px;" id="${containerId}-label">[ ${label} ]</div>
+                <div style="color: var(--ink); margin-bottom: 10px; font-size: 14px;" id="${containerId}-label">[ ${label} ]</div>
                 <div class="progress-bar-container">
                     <div class="progress-bar-fill" id="${barId}" style="width: 0%"></div>
                     <div class="progress-bar-text" id="${textId}">0%</div>
@@ -886,7 +888,7 @@ function clearProgress() {
     const isAtTop = logsPlaceholder && logsPlaceholder.contains(log);
     const btnText = isAtTop ? '[ ↓ Move to Bottom ]' : '[ ↑ Move to Top ]';
     
-    log.innerHTML = '<div style="display: flex; justify-content: space-between; align-items: center; color: #0f0; font-size: 16px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #333; font-family: \'SFMono-Regular\', \'SF Mono\', \'Inconsolata\', \'Terminus\', monospace;"><span>[ Console Logs ]</span><button class="btn" onclick="toggleLogsPosition()" id="toggleLogsBtn" style="padding: 6px 12px; font-size: 12px;">' + btnText + '</button></div>';
+    log.innerHTML = '<div style="display: flex; justify-content: space-between; align-items: center; color: var(--ink); font-size: 16px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--line); font-family: \'SFMono-Regular\', \'SF Mono\', \'Inconsolata\', \'Terminus\', monospace;"><span>[ Console Logs ]</span><button class="btn" onclick="toggleLogsPosition()" id="toggleLogsBtn" style="padding: 6px 12px; font-size: 12px;">' + btnText + '</button></div>';
 }
 
 function toggleLogsPosition() {
@@ -1100,7 +1102,7 @@ function refreshDownloaded() {
         const list = document.getElementById('downloadedList');
         
         if (folders.length === 0) {
-            list.innerHTML = '<p style="color:#0f0;">No downloaded files</p>';
+            list.innerHTML = '<p style="color:var(--ink);">No downloaded files</p>';
             return;
         }
         
